@@ -1,41 +1,100 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Dinner App</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dinner App</title>
+  <style>
+    body{font-family:system-ui;max-width:520px;margin:40px auto;padding:0 16px;text-align:center}
+    button{padding:14px 16px;margin:8px;border-radius:12px;border:1px solid #ddd;font-size:16px;cursor:pointer}
+    input{width:100%;padding:14px;border-radius:12px;border:1px solid #ddd;margin-top:12px;font-size:16px;box-sizing:border-box}
+    .card{border:1px solid #eee;border-radius:16px;padding:16px;margin-top:18px}
+    .hidden{display:none}
+    #latest{color:#333}
+    small{color:#666}
+  </style>
 </head>
 
-<body style="font-family:system-ui;text-align:center;margin-top:60px;">
+<body>
+  <h1>🍲 Dinner Decision</h1>
 
-<h1>🍲 Dinner Decision</h1>
+  <div class="card">
+    <button onclick="veg()">Veg</button>
+    <button onclick="nonveg()">Non-veg</button>
+  </div>
 
-<button onclick="veg()">Veg</button>
-<button onclick="nonveg()">Non Veg</button>
+  <div id="vegBox" class="card hidden">
+    <p>What do you want to eat?</p>
+    <input id="food" placeholder="Type food" />
+    <button onclick="submitVeg()">Submit</button>
+  </div>
 
-<div id="vegBox" style="display:none;margin-top:20px;">
-<input id="food" placeholder="Type food">
-<button onclick="share()">Send</button>
-</div>
+  <div id="msg" class="card hidden">
+    Thanks — I’ll use that time for myself 🙂
+  </div>
 
-<div id="msg" style="display:none;margin-top:20px;">
-Thanks — I’ll use that time for myself 🙂
-</div>
+  <div class="card">
+    <b>Latest submission:</b>
+    <div id="latest" style="margin-top:8px;">Loading…</div>
+    <small id="latestTime"></small>
+  </div>
 
-<script>
-function veg(){
- document.getElementById("vegBox").style.display="block";
- document.getElementById("msg").style.display="none";
-}
-function nonveg(){
- document.getElementById("vegBox").style.display="none";
- document.getElementById("msg").style.display="block";
-}
-function share(){
- let food=document.getElementById("food").value;
- alert("Dinner choice: "+food);
-}
-</script>
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbwt_OwJi-ACQIFNF56ClkWJzoP6gGlqANVBKAMC2LgOx7sOl_sIUlvCl2-KpKKwgeLWoA/exec";
 
+    async function saveChoice(type, text) {
+      // Apps Script expects POST body as JSON string
+      await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ type, text })
+      });
+    }
+
+    async function loadLatest() {
+      const res = await fetch(API_URL, { method: "GET" });
+      const data = await res.json();
+
+      const latestEl = document.getElementById("latest");
+      const timeEl = document.getElementById("latestTime");
+
+      if (!data.latest) {
+        latestEl.textContent = "No submissions yet.";
+        timeEl.textContent = "";
+        return;
+      }
+
+      latestEl.textContent = `${String(data.latest.type || "").toUpperCase()}: ${data.latest.text || ""}`;
+
+      const t = data.latest.time ? new Date(data.latest.time).toLocaleString() : "";
+      timeEl.textContent = t ? `Updated: ${t}` : "";
+    }
+
+    function veg() {
+      document.getElementById("vegBox").classList.remove("hidden");
+      document.getElementById("msg").classList.add("hidden");
+    }
+
+    async function nonveg() {
+      document.getElementById("vegBox").classList.add("hidden");
+      document.getElementById("msg").classList.remove("hidden");
+      await saveChoice("non-veg", "Non-veg chosen");
+      await loadLatest();
+    }
+
+    async function submitVeg() {
+      const foodEl = document.getElementById("food");
+      const food = foodEl.value.trim();
+      if (!food) return alert("Type food first 🙂");
+
+      await saveChoice("veg", food);
+      foodEl.value = "";
+      await loadLatest();
+      alert("Saved ✅");
+    }
+
+    // load latest when page opens
+    window.addEventListener("load", loadLatest);
+  </script>
 </body>
 </html>
