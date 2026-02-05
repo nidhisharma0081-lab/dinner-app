@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dinner App</title>
+</head>
+
+<body style="font-family:system-ui;text-align:center;margin-top:60px;">
+
+<h1>🍲 Dinner Decision</h1>
+
+<button onclick="veg()">Veg</button>
+<button onclick="nonveg()">Non Veg</button>
+
+<div id="vegBox" style="display:none;margin-top:20px;">
+<input id="food" placeholder="Type food">
+<button onclick="share()">Send</button>
+</div>
+
+<div id="msg" style="display:none;margin-top:20px;">
+Thanks — I’ll use that time for myself 🙂
+</div>
+
+<script>
+function veg(){
+ document.getElementById("vegBox").style.display="block";
+ document.getElementById("msg").style.display="none";
+}
+function nonveg(){
+ document.getElementById("vegBox").style.display="none";
+ document.getElementById("msg").style.display="block";
+}
+function share(){
+ let food=document.getElementById("food").value;
+ alert("Dinner choice: "+food);
+}
+</script>
+
+</body>
+</html>
